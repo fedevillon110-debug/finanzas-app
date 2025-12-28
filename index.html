@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mi gestor de finanzas</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Soporte iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="app">
+    <h1>💰 Gestor de Finanzas</h1>
+
+    <div class="form">
+      <input type="number" id="monto" placeholder="Monto">
+
+      <select id="tipo">
+        <option value="ingreso">Ingreso</option>
+        <option value="gasto">Gasto</option>
+      </select>
+
+      <select id="categoria">
+        <option value="comida">🍔 Comida</option>
+        <option value="transporte">🚗 Transporte</option>
+        <option value="entretenimiento">🎮 Entretenimiento</option>
+        <option value="estudio">📚 Estudio</option>
+        <option value="ahorro">💾 Ahorro</option>
+        <option value="otros">📦 Otros</option>
+      </select>
+
+      <button id="agregar">Agregar</button>
+    </div>
+
+    <h2>Total: $<span id="total">0</span></h2>
+
+    <ul id="lista"></ul>
+
+    <canvas id="graficoGastos"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
