@@ -1,168 +1,225 @@
-// ===============================
-// 1. Cargar datos guardados
-// ===============================
 let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
-
-// ===============================
-// 2. Obtener elementos del HTML
-// ===============================
-const inputMonto = document.getElementById("monto");
-const selectTipo = document.getElementById("tipo");
-const selectCategoria = document.getElementById("categoria");
-const botonAgregar = document.getElementById("agregar");
-const lista = document.getElementById("lista");
-const spanTotal = document.getElementById("total");
-
-// ===============================
-// 3. Mostrar / ocultar categoría
-// ===============================
-selectCategoria.style.display = "none";
-
-selectTipo.addEventListener("change", () => {
-  if (selectTipo.value === "gasto") {
-    selectCategoria.style.display = "inline-block";
-  } else {
-    selectCategoria.style.display = "none";
-  }
-});
-
-// ===============================
-// 4. GRÁFICO (Chart.js)
-// ===============================
-const ctx = document.getElementById("graficoGastos").getContext("2d");
+let mesSeleccionado = new Date().getMonth();
+let vista = "mes";
 let grafico;
 
-function actualizarGrafico() {
-  const gastosPorCategoria = {};
+/* ELEMENTOS */
+const menu = document.getElementById("menu");
+const hamburguesa = document.getElementById("hamburguesa");
+const btnMeses = document.getElementById("btnMeses");
+const listaMeses = document.getElementById("listaMeses");
+const btnAhorros = document.getElementById("btnAhorros");
 
-  movimientos.forEach(mov => {
-    if (mov.tipo === "gasto") {
-      if (!gastosPorCategoria[mov.categoria]) {
-        gastosPorCategoria[mov.categoria] = 0;
-      }
-      gastosPorCategoria[mov.categoria] += mov.monto;
-    }
-  });
+const formulario = document.getElementById("formulario");
+const monto = document.getElementById("monto");
+const tipo = document.getElementById("tipo");
+const categoriaIngreso = document.getElementById("categoriaingreso");
+const categoriaGasto = document.getElementById("categoriagasto");
+const categoriaAhorro = document.getElementById("categoriaahorro");
+const agregar = document.getElementById("agregar");
 
-  const categorias = Object.keys(gastosPorCategoria);
-  const montos = Object.values(gastosPorCategoria);
+const vistaMes = document.getElementById("vistaMes");
+const vistaAhorros = document.getElementById("vistaAhorros");
 
-  if (grafico) {
-    grafico.destroy();
+const listaIngresos = document.getElementById("listaIngresos");
+const listaGastos = document.getElementById("listaGastos");
+const listaAhorros = document.getElementById("listaAhorros");
+
+const total = document.getElementById("total");
+const totalAhorros = document.getElementById("totalAhorros");
+
+/* MENU */
+hamburguesa.onclick = () => menu.classList.toggle("abierto");
+
+btnMeses.onclick = () => listaMeses.classList.toggle("oculto");
+
+listaMeses.onclick = e => {
+  if (e.target.dataset.mes) {
+    mesSeleccionado = Number(e.target.dataset.mes);
+    document.getElementById("mesActual").textContent = e.target.textContent;
+    vista = "mes";
+    menu.classList.remove("abierto");
+    render();
   }
+};
+
+btnAhorros.onclick = () => {
+  vista = "ahorros";
+  menu.classList.remove("abierto");
+  render();
+};
+
+/* FORM */
+function actualizarCategorias() {
+  categoriaIngreso.style.display = "none";
+  categoriaGasto.style.display = "none";
+  categoriaAhorro.style.display = "none";
+
+  if (tipo.value === "ingreso") {
+    categoriaIngreso.style.display = "block";
+  }
+  if (tipo.value === "gasto") {
+    categoriaGasto.style.display = "block";
+  }
+  if (tipo.value === "ahorro") {
+    categoriaAhorro.style.display = "block";
+  }
+}
+
+tipo.onchange = actualizarCategorias;
+actualizarCategorias();
+
+/* AGREGAR */
+agregar.onclick = () => {
+let categoriaSeleccionada;
+
+if (tipo.value === "ingreso") categoriaSeleccionada = categoriaIngreso.value;
+if (tipo.value === "gasto") categoriaSeleccionada = categoriaGasto.value;
+if (tipo.value === "ahorro") categoriaSeleccionada = categoriaAhorro.value;
+
+movimientos.push({
+  monto: Number(monto.value),
+  tipo: tipo.value,
+  categoria: categoriaSeleccionada,
+  fecha: new Date().toLocaleDateString("es-AR")
+});
+
+  localStorage.setItem("movimientos", JSON.stringify(movimientos));
+  monto.value = "";
+  render();
+};
+
+/* BORRAR */
+function borrar(i) {
+  movimientos.splice(i, 1);
+  localStorage.setItem("movimientos", JSON.stringify(movimientos));
+  render();
+}
+
+/* DARK MODE */
+document.getElementById("darkSwitch").onchange = e => {
+  document.body.classList.toggle("dark", e.target.checked);
+};
+
+/* GRAFICO */
+function actualizarGrafico(datos) {
+  const ctx = document.getElementById("graficoGastos");
+  if (grafico) grafico.destroy();
 
   grafico = new Chart(ctx, {
     type: "pie",
     data: {
-      labels: categorias,
-      datasets: [{
-        data: montos
-      }]
+      labels: Object.keys(datos),
+      datasets: [{ data: Object.values(datos) }]
     }
   });
 }
 
-// ===============================
-// 5. Calcular total
-// ===============================
-function calcularTotal() {
-  let total = 0;
+/* RENDER */
+function render() {
+  listaIngresos.innerHTML = "";
+  listaGastos.innerHTML = "";
+  listaAhorros.innerHTML = "";
 
-  movimientos.forEach(mov => {
-    if (mov.tipo === "gasto") {
-      total -= mov.monto;
-    } else {
-      total += mov.monto;
+  vistaMes.classList.toggle("oculto", vista !== "mes");
+  vistaAhorros.classList.toggle("oculto", vista !== "ahorros");
+  formulario.style.display = vista === "mes" ? "grid" : "none";
+
+  let t = 0;
+  let ah = 0;
+  let gastosPorCategoria = {};
+
+  movimientos.forEach((m, i) => {
+    const [, mes] = m.fecha.split("/");
+    if (vista === "mes" && Number(mes) - 1 !== mesSeleccionado) return;
+
+    if (m.tipo === "ingreso" && vista === "mes") {
+      t += m.monto;
+      listaIngresos.innerHTML += `
+        <li class="ingreso">+$${m.monto} - ${m.categoria} - ${m.fecha}
+        <button class="borrar" onclick="borrar(${i})">🗑</button></li>`;
+    }
+
+    if (m.tipo === "gasto" && vista === "mes") {
+      t -= m.monto;
+      listaGastos.innerHTML += `
+        <li class="gasto">-$${m.monto} - ${m.categoria} - ${m.fecha}
+        <button class="borrar" onclick="borrar(${i})">🗑</button></li>`;
+      gastosPorCategoria[m.categoria] =
+        (gastosPorCategoria[m.categoria] || 0) + m.monto;
+    }
+
+    if (m.tipo === "ahorro") {
+      ah += m.monto;
+      listaAhorros.innerHTML += `
+        <li class="ahorro-item">+$${m.monto} - ${m.categoria} - ${m.fecha}
+        <button class="borrar" onclick="borrar(${i})">🗑</button></li>`;
     }
   });
 
-  spanTotal.textContent = total;
+  total.textContent = t;
+  totalAhorros.textContent = ah;
+
+  if (vista === "mes") actualizarGrafico(gastosPorCategoria);
 }
 
-// ===============================
-// 6. Mostrar movimientos
-// ===============================
-function mostrarMovimientos() {
-  lista.innerHTML = "";
+render();
 
-  movimientos.forEach((mov, index) => {
-    const item = document.createElement("li");
+//exportar informe
+document.getElementById("exportarPDF").onclick = () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-    if (mov.tipo === "ingreso") {
-      item.textContent = `Ingreso: $${mov.monto} (${mov.fecha} ${mov.hora})`;
-      item.classList.add("ingreso");
-    } else {
-      item.textContent = `Gasto (${mov.categoria}): $${mov.monto} (${mov.fecha} ${mov.hora})`;
-      item.classList.add("gasto");
+  let y = 10;
+
+  doc.text("Informe mensual", 10, y);
+  y += 10;
+
+  doc.text("Ingresos:", 10, y);
+  y += 10;
+
+  movimientos.forEach(m => {
+    const [, mes] = m.fecha.split("/");
+    if (Number(mes) - 1 !== mesSeleccionado) return;
+
+    if (m.tipo === "ingreso") {
+      doc.text(`$${m.monto} - ${m.categoria} - ${m.fecha}`, 10, y);
+      y += 8;
     }
-
-    const botonBorrar = document.createElement("button");
-    botonBorrar.textContent = "Borrar";
-
-    botonBorrar.addEventListener("click", () => {
-      borrarMovimiento(index);
-    });
-
-    item.appendChild(botonBorrar);
-    lista.appendChild(item);
-  });
-}
-
-// ===============================
-// 7. Guardar / borrar
-// ===============================
-function guardar() {
-  localStorage.setItem("movimientos", JSON.stringify(movimientos));
-}
-
-function borrarMovimiento(indice) {
-  movimientos.splice(indice, 1);
-  guardar();
-  mostrarMovimientos();
-  calcularTotal();
-  actualizarGrafico();
-}
-
-// ===============================
-// 8. Botón agregar
-// ===============================
-botonAgregar.addEventListener("click", () => {
-  const monto = Number(inputMonto.value);
-  const tipo = selectTipo.value;
-
-  if (monto <= 0) return;
-
-  const ahora = new Date();
-  const fecha = ahora.toLocaleDateString("es-AR");
-  const hora = ahora.toLocaleTimeString("es-AR", {
-    hour: "2-digit",
-    minute: "2-digit"
   });
 
-  let categoria = null;
-  if (tipo === "gasto") {
-    categoria = selectCategoria.value;
-  }
+  y += 5;
+  doc.text("Gastos:", 10, y);
+  y += 10;
 
-  movimientos.push({
-    monto,
-    tipo,
-    categoria,
-    fecha,
-    hora
+  movimientos.forEach(m => {
+    const [, mes] = m.fecha.split("/");
+    if (Number(mes) - 1 !== mesSeleccionado) return;
+
+    if (m.tipo === "gasto") {
+      doc.text(`$${m.monto} - ${m.categoria} - ${m.fecha}`, 10, y);
+      y += 8;
+    }
   });
 
-  guardar();
-  mostrarMovimientos();
-  calcularTotal();
-  actualizarGrafico();
+  y += 5;
+  doc.text("Ahorros:", 10, y);
+  y += 10;
 
-  inputMonto.value = "";
-});
+  movimientos.forEach(m => {
+    if (m.tipo === "ahorro") {
+      doc.text(`$${m.monto} - ${m.categoria} - ${m.fecha}`, 10, y);
+      y += 8;
+    }
+  });
 
-// ===============================
-// 9. Al cargar la página
-// ===============================
-mostrarMovimientos();
-calcularTotal();
-actualizarGrafico();
+const nombresMeses = [
+  "enero","febrero","marzo","abril","mayo","junio",
+  "julio","agosto","septiembre","octubre","noviembre","diciembre"
+];
+
+const nombreMes = nombresMeses[mesSeleccionado];
+
+doc.save(`informe${nombreMes}.pdf`);
+};
+
