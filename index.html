@@ -1,50 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Mi gestor de finanzas</title>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Soporte iPhone -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Gestor de Finanzas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body>
-  <div class="app">
-    <h1>💰 Gestor de Finanzas</h1>
 
-    <div class="form">
+<body>
+<div class="app">
+
+  <!-- HAMBURGUESA -->
+  <button class="hamburguesa" id="hamburguesa">☰</button>
+
+  <!-- MENU -->
+  <aside class="menu" id="menu">
+    <button id="btnMeses">📅Meses</button>
+    <ul id="listaMeses" class="oculto">
+      <li data-mes="0">1-Enero</li>
+      <li data-mes="1">2-Febrero</li>
+      <li data-mes="2">3-Marzo</li>
+      <li data-mes="3">4-Abril</li>
+      <li data-mes="4">5-Mayo</li>
+      <li data-mes="5">6-Junio</li>
+      <li data-mes="6">7-Julio</li>
+      <li data-mes="7">8-Agosto</li>
+      <li data-mes="8">9-Septiembre</li>
+      <li data-mes="9">10-Octubre</li>
+      <li data-mes="10">11-Noviembre</li>
+      <li data-mes="11">12-Diciembre</li>
+    </ul>
+    <button id="btnAhorros">🐷 Ahorros</button>
+  </aside>
+
+  <!-- CONTENIDO -->
+  <main class="contenido">
+
+    <header class="topbar">
+      <h1>Gestor de Finanzas</h1>
+
+      <label class="switch">
+        <input type="checkbox" id="darkSwitch">
+        <span class="slider"></span>
+      </label>
+    </header>
+
+    <!-- FORMULARIO -->
+    <section class="form" id="formulario">
       <input type="number" id="monto" placeholder="Monto">
 
       <select id="tipo">
         <option value="ingreso">Ingreso</option>
         <option value="gasto">Gasto</option>
+        <option value="ahorro">Ahorro</option>
       </select>
 
-      <select id="categoria">
-        <option value="comida">🍔 Comida</option>
-        <option value="transporte">🚗 Transporte</option>
-        <option value="entretenimiento">🎮 Entretenimiento</option>
-        <option value="estudio">📚 Estudio</option>
-        <option value="ahorro">💾 Ahorro</option>
-        <option value="otros">📦 Otros</option>
+      <select id="categoriaingreso">
+        <option value="mensualidad">💵Mensualidad</option>
+        <option value="trabajo">🪏Trabajo</option>
+        <option value="timba">🎰Timba</option>
+        <option value="extra">💰Extra</option>
       </select>
 
-      <button id="agregar">Agregar</button>
-    </div>
+      <select id="categoriagasto">
+        <option value="comida">🍔Comida</option>
+        <option value="transporte">🚌Transporte</option>
+        <option value="facultad">📖Facultad</option>
+        <option value="entretenimiento">🎮Jueguitos</option>
+        <option value="servicios">📺Servicios</option>
+        <option value="timba">🎰Timba</option>
+        <option value="porro">🍁Porro</option>
+        <option value="otros">📦Otros</option>
+      </select>
+      
+      <select id="categoriaahorro">
+        <option value="btc">BTC</option>
+        <option value="usd">USD</option>
+        <option value="pesos">PESOS</option>
+        <option value="otro">OTROS</option>
+      </select>
 
-    <h2>Total: $<span id="total">0</span></h2>
+      <button id="agregar">+</button>
+    </section>
 
-    <ul id="lista"></ul>
+    <!-- VISTA MES -->
+    <section id="vistaMes">
+      <div class="header-mes">
+            <h3>Mes: <span id="mesActual">Actual</span></h3>
+            <button id="exportarPDF" class="btn-exportar">Exportar informe</button>
+      </div>
+      <h2>Total: $<span id="total">0</span></h2>
 
-    <canvas id="graficoGastos"></canvas>
-  </div>
+      <div class="columnas">
+        <div>
+          <h4>Ingresos</h4>
+          <ul id="listaIngresos"></ul>
+        </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
-</body>
+        <div>
+          <h4>Gastos</h4>
+          <ul id="listaGastos"></ul>
+        </div>
+      </div>
 
-</html>
+      <div class="grafico">
+        <canvas id="graficoGastos"></canvas>
+      </div>
+    </section>
